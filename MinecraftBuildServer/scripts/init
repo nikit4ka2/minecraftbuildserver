@@ -1,0 +1,83 @@
+#!/bin/bash
+
+ROOT_DIR=`pwd`
+
+build () {
+  # Make and cd into build directory
+  mkdir build
+  cd build
+
+  build_spigot
+  build_plugins
+
+  # Back up
+  cd ..
+}
+
+build_spigot () {
+  # Make and cd into temp directory
+  mkdir buildtools
+  cd buildtools
+
+  # Set git config for BuildTools
+  git_autocrlf=`git config --global core.autocrlf`
+  git config --global core.autocrlf false
+
+  # Download the latest version of BuildTools.jar
+  curl -o BuildTools.jar https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
+  # Run BuildTools
+  java -jar BuildTools.jar
+
+  # Reset git config
+  git config --global core.autocrlf $git_autocrlf
+
+  # Back up
+  cd ..
+}
+
+build_plugins () {
+  # Make and cd into plugins directory
+  mkdir plugins
+  cd plugins
+
+  # Download WorldEdit
+  curl -o WorldEdit.jar http://builds.enginehub.org/job/worldedit/8243/download/worldedit-bukkit-6.1.1-SNAPSHOT-dist.jar
+
+  # Download VoidGenerator
+  # curl -o VoidGenerator.jar http://dev.bukkit.org/media/files/564/209/VoidGenerator.jar
+  curl -o VoidGenerator.jar http://addons-origin.cursecdn.com/files/564/209/VoidGenerator.jar
+
+  # Back up
+  cd ..
+}
+
+move () {
+  move_scaffold
+  move_plugins
+  move_spigot
+}
+
+move_scaffold () {
+  cp -r ./scaffold/ ./server
+}
+
+move_plugins () {
+  cp -r ./build/plugins/ ./server/plugins
+}
+
+move_spigot () {
+  cp ./build/buildtools/spigot-*.jar ./server/
+}
+
+prep () {
+  mkdir build
+  mkdir server
+}
+
+run () {
+  prep
+  build
+  move
+}
+
+run
